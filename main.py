@@ -96,6 +96,16 @@ def apply_custom_css():
                 background: #ffffff;
             }
 
+            div[data-baseweb="select"] span,
+            div[data-baseweb="select"] div {
+                color: #18212f;
+            }
+
+            div[data-baseweb="select"] svg {
+                color: #18212f;
+                fill: #18212f;
+            }
+
             .stButton > button {
                 width: 100%;
                 min-height: 3rem;
@@ -114,36 +124,6 @@ def apply_custom_css():
                 box-shadow: 0 16px 34px rgba(244, 91, 47, 0.25);
             }
 
-            .metric-row {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 0.75rem;
-                margin: 1rem 0 0.35rem;
-            }
-
-            .metric-card {
-                padding: 0.9rem 1rem;
-                border-radius: 12px;
-                background: #ffffff;
-                border: 1px solid rgba(34, 46, 64, 0.10);
-            }
-
-            .metric-label {
-                color: #667085;
-                font-size: 0.76rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-            }
-
-            .metric-value {
-                color: #172033;
-                font-size: 1rem;
-                font-weight: 800;
-                margin-top: 0.25rem;
-                overflow-wrap: anywhere;
-            }
-
             .post-card {
                 padding: 1.35rem 1.45rem;
                 border-radius: 14px;
@@ -157,6 +137,31 @@ def apply_custom_css():
                 font-size: 1.15rem;
                 font-weight: 800;
                 margin-bottom: 0.75rem;
+            }
+
+            div[data-testid="stDownloadButton"] > button {
+                width: 100%;
+                min-height: 3rem;
+                border-radius: 10px;
+                border: 1px solid rgba(24, 33, 47, 0.18);
+                background: #ffffff;
+                color: #18212f;
+                font-weight: 800;
+                box-shadow: 0 12px 28px rgba(36, 48, 71, 0.10);
+            }
+
+            div[data-testid="stDownloadButton"] > button:hover {
+                border-color: rgba(24, 33, 47, 0.32);
+                background: #ffffff;
+                color: #000000;
+            }
+
+            div[data-testid="stDownloadButton"] > button:disabled,
+            div[data-testid="stDownloadButton"] > button:disabled:hover {
+                border-color: rgba(24, 33, 47, 0.14);
+                background: #ffffff;
+                color: #18212f;
+                opacity: 0.55;
             }
 
             .post-body {
@@ -181,9 +186,6 @@ def apply_custom_css():
                     border-radius: 14px;
                 }
 
-                .metric-row {
-                    grid-template-columns: 1fr;
-                }
             }
         </style>
         """,
@@ -228,30 +230,6 @@ def main():
     with col3:
         selected_language = st.selectbox("Language", options=language_options)
 
-    safe_tag = html.escape(selected_tag)
-    safe_length = html.escape(selected_length)
-    safe_language = html.escape(selected_language)
-
-    st.markdown(
-        f"""
-        <div class="metric-row">
-            <div class="metric-card">
-                <div class="metric-label">Topic</div>
-                <div class="metric-value">{safe_tag}</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Length</div>
-                <div class="metric-value">{safe_length}</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Language</div>
-                <div class="metric-value">{safe_language}</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     generate_clicked = st.button("Generate Post", use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -263,24 +241,29 @@ def main():
             except Exception as exc:
                 st.error(f"Could not generate the post: {exc}")
 
-    if "generated_post" in st.session_state:
-        post = st.session_state["generated_post"]
-        safe_post = html.escape(post)
-        st.markdown(
-            f"""
-            <div class="post-card">
-                <div class="post-title">Generated Post</div>
-                <div class="post-body">{safe_post}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    post = st.session_state.get("generated_post", "")
+    header_col, download_col = st.columns([2, 1])
+    with header_col:
+        st.markdown('<div class="post-title">Generated Post</div>', unsafe_allow_html=True)
+    with download_col:
         st.download_button(
             "Download Post",
             data=post,
             file_name="linkedin_post.txt",
             mime="text/plain",
             use_container_width=True,
+            disabled=not post,
+        )
+
+    if "generated_post" in st.session_state:
+        safe_post = html.escape(post)
+        st.markdown(
+            f"""
+            <div class="post-card">
+                <div class="post-body">{safe_post}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
     else:
         st.markdown(
